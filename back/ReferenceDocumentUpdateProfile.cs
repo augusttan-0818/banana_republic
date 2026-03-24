@@ -25,6 +25,10 @@ namespace NRC.Const.CodesAPI.API.Profiles
             CreateMap<StandardUpdate, ReferenceDocumentUpdateListDto>()
                 .ForMember(dest => dest.AgencyName, opt => opt.MapFrom(src => src.Standard != null && src.Standard.Agency != null ? src.Standard.Agency.Name : string.Empty))
                 .ForMember(dest => dest.ReferencedIn, opt => opt.MapFrom(src => string.Empty)); // Empty for now
+
+            // Status mappings
+            CreateMap<StandardUpdateStatus, StandardUpdateStatusDto>();
+            CreateMap<StandardUpdateSubStatus, StandardUpdateSubStatusDto>();
         }
     }
 }

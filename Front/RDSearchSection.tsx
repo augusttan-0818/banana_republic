@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import SectionControl from "@/features/form/components/controllers/SectionControl";
 import { FormErrorSummary } from "@/features/form/components/form-error-summary";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Box,
   Button,
@@ -14,7 +13,7 @@ import {
   IconButton,
   InputAdornment,
 } from "@mui/material";
-import { Form, FormProvider, SubmitHandler, useForm } from "react-hook-form";
+import { FormProvider, SubmitHandler, useForm, useWatch } from "react-hook-form";
 import { TextField } from "@/features/form/components/controllers/text-field";
 import { Autocomplete } from "@/features/form/components/controllers/autocomplete";
 import { DatePicker } from "@/features/form/components/controllers/date-picker";
@@ -22,6 +21,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import SearchOffIcon from '@mui/icons-material/SearchOff';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import RDUpdatesDataGrid from "./RDUpdatesDataGrid";
+import { fetchAllStatuses, fetchSubStatusesByStatusId, StatusOption, SubStatusOption } from "@/app/[locale]/reference-documents/utils/utilReferenceDocuments";
 
 export type RDUpdateSearch = {
   documentNumberFrom?: string;
@@ -72,22 +72,10 @@ const havingOptions = [
   { label: "Not having", value: "Not having" },
 ];
 
-const statusOptions = [
-  { label: "ANY", value: "" },
-  { label: "Received", value: "Received" },
-  { label: "Sorted", value: "Sorted" },
-  { label: "Analyzed", value: "Analyzed" },
-  { label: "Reviewed", value: "Reviewed" },
-  { label: "Posted for pre-Public Review", value: "Posted for pre-Public Review" },
-  { label: "Posted for Public Review", value: "Posted for Public Review" },
-  { label: "Review of Public Review comments", value: "Review of Public Review Comments" },
-  { label: "Posted for post-Public Review", value: "Posted for post-Public Review" },
-  { label: "Ready for P&M Processing", value: "Ready for P&M Processing" },
-  { label: "Published", value: "Published" },
-  { label: "Completed", value: "Completed" },
-];
+// Status IDs that have sub-statuses (decisions)
+const STATUS_IDS_WITH_SUBSTATUSES = [3, 6]; // 3 = Reviewed, 6 = Review of Public Review comments
 
-const decisionOptions = [
+const defaultDecisionOptions = [
   { label: "ANY", value: "" },
   { label: "NO DECISION", value: "NO DECISION" },
 ];
@@ -130,11 +118,78 @@ interface RDSearcSectionProps {
 export default function RDSearchSection({ refreshKey, onRefreshChange }: RDSearcSectionProps) {
   const [expanded, setExpanded] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [statusOptions, setStatusOptions] = useState<{ label: string; value: string; id?: number }[]>([
+    { label: "ANY", value: "" },
+  ]);
+  const [decisionOptions, setDecisionOptions] = useState(defaultDecisionOptions);
 
   const form = useForm<RDUpdateSearch>({
     mode: "all",
     defaultValues: defaultValues,
   });
+
+  // Watch the status field for changes
+  const selectedStatus = useWatch({
+    control: form.control,
+    name: "statusValue",
+  });
+
+  // Fetch statuses on mount
+  useEffect(() => {
+    const loadStatuses = async () => {
+      try {
+        const statuses = await fetchAllStatuses();
+        const options = [
+          { label: "ANY", value: "", id: undefined },
+          ...statuses.map((s) => ({
+            label: s.name || "",
+            value: s.name || "",
+            id: s.id,
+          })),
+        ];
+        setStatusOptions(options);
+      } catch (error) {
+        console.error("Failed to load statuses:", error);
+      }
+    };
+    loadStatuses();
+  }, []);
+
+  // Update decision options when status changes
+  useEffect(() => {
+    const updateDecisionOptions = async () => {
+      // Find the selected status option to get its ID
+      const selectedOption = statusOptions.find((opt) => opt.value === selectedStatus);
+      const statusId = selectedOption?.id;
+
+      // Check if this status has sub-statuses
+      if (statusId && STATUS_IDS_WITH_SUBSTATUSES.includes(statusId)) {
+        try {
+          const subStatuses = await fetchSubStatusesByStatusId(statusId);
+          const options = [
+            { label: "ANY", value: "" },
+            { label: "NO DECISION", value: "NO DECISION" },
+            ...subStatuses.map((s) => ({
+              label: s.name || "",
+              value: s.name || "",
+            })),
+          ];
+          setDecisionOptions(options);
+        } catch (error) {
+          console.error("Failed to load sub-statuses:", error);
+          setDecisionOptions(defaultDecisionOptions);
+        }
+      } else {
+        // Reset to default options for statuses without sub-statuses
+        setDecisionOptions(defaultDecisionOptions);
+      }
+
+      // Reset the decision field when status changes
+      form.setValue("decision", "");
+    };
+
+    updateDecisionOptions();
+  }, [selectedStatus, statusOptions, form]);
 
   const handleSubmit: SubmitHandler<RDUpdateSearch> = async (formData) => {
     console.log("Form Data Submitted: ", formData);

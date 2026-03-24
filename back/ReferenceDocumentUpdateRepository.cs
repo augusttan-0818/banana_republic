@@ -78,5 +78,24 @@ namespace NRC.Const.CodesAPI.Infrastructure.Services.Repositories
         {
             return await _context.Agencies.FirstOrDefaultAsync(a => a.Id == id);
         }
+
+        // Statuses
+        public async Task<IEnumerable<StandardUpdateStatus>> GetAllStatusesAsync()
+        {
+            return await _context.StandardUpdateStatuses
+                .Where(s => !s.IsRetired)
+                .OrderBy(s => s.SortOrder)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<StandardUpdateSubStatus>> GetSubStatusesByStatusIdAsync(int statusId)
+        {
+            return await _context.StandardUpdateSubStatuses
+                .Where(s => s.StandardUpdateStatusId == statusId && !s.IsRetired)
+                .OrderBy(s => s.SortOrder)
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }

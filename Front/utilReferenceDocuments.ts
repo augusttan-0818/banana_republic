@@ -1,7 +1,21 @@
-"use client"; 
+"use client";
 import { StandardsInfo, Organization, OrganizationAndStandards } from "@/app/api/referencedocuments/ReferenceDocument";
 import { APP_BASE_URL } from "@/constants/nrcconstants";
-import { ReferenceDocumentRecord, statusType, RDUpdate } from "@/app/[locale]/reference-documents/utils/dataTypes"; 
+import { ReferenceDocumentRecord, statusType, RDUpdate } from "@/app/[locale]/reference-documents/utils/dataTypes";
+
+export interface StatusOption {
+    id: number;
+    name: string;
+    nameFR: string | null;
+    sortOrder: number;
+}
+
+export interface SubStatusOption {
+    id: number;
+    name: string;
+    nameFR: string | null;
+    sortOrder: number | null;
+} 
 
 
 export async function fetchAllStandardsAndOrgs(cookieHeader: string, page: number, pageSize: number): Promise<[ReferenceDocumentRecord[], number]> { 
@@ -239,6 +253,58 @@ export async function fetchStandardByStandID(cookieHeader: string, StandID: stri
         return [[transformedData], 1];
     } catch (error) {
         console.error(`Error fetching data from ${url}:`, error);
+        throw error;
+    }
+}
+
+export async function fetchAllStatuses(): Promise<StatusOption[]> {
+    const isServer = typeof window === 'undefined';
+    const baseUrl = isServer ? APP_BASE_URL : '';
+    const url = `${baseUrl}/api/referencedocumentupdates/statuses`;
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            cache: 'no-store'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data: StatusOption[] = await response.json();
+        return data;
+    } catch (error) {
+        console.error(`Error fetching statuses from ${url}:`, error);
+        throw error;
+    }
+}
+
+export async function fetchSubStatusesByStatusId(statusId: number): Promise<SubStatusOption[]> {
+    const isServer = typeof window === 'undefined';
+    const baseUrl = isServer ? APP_BASE_URL : '';
+    const url = `${baseUrl}/api/referencedocumentupdates/statuses/${statusId}/substatuses`;
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            cache: 'no-store'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data: SubStatusOption[] = await response.json();
+        return data;
+    } catch (error) {
+        console.error(`Error fetching sub-statuses from ${url}:`, error);
         throw error;
     }
 }

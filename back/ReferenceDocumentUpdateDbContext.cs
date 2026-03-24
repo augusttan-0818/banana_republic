@@ -11,6 +11,8 @@ namespace NRC.Const.CodesAPI.Infrastructure.Persistence.DbContexts
         public DbSet<Agency> Agencies { get; set; }
         public DbSet<Standard> Standards { get; set; }
         public DbSet<StandardUpdate> StandardUpdates { get; set; }
+        public DbSet<StandardUpdateStatus> StandardUpdateStatuses { get; set; }
+        public DbSet<StandardUpdateSubStatus> StandardUpdateSubStatuses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

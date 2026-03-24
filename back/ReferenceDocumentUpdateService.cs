@@ -74,6 +74,19 @@ namespace NRC.Const.CodesAPI.Application.Services
             var agency = await _repository.GetAgencyByIdAsync(id);
             return agency == null ? null : _mapper.Map<AgencyDto>(agency);
         }
+
+        // Statuses
+        public async Task<IEnumerable<StandardUpdateStatusDto>> GetAllStatusesAsync()
+        {
+            var statuses = await _repository.GetAllStatusesAsync();
+            return _mapper.Map<IEnumerable<StandardUpdateStatusDto>>(statuses);
+        }
+
+        public async Task<IEnumerable<StandardUpdateSubStatusDto>> GetSubStatusesByStatusIdAsync(int statusId)
+        {
+            var subStatuses = await _repository.GetSubStatusesByStatusIdAsync(statusId);
+            return _mapper.Map<IEnumerable<StandardUpdateSubStatusDto>>(subStatuses);
+        }
     }
 }
 

@@ -88,6 +88,24 @@ namespace NRC.Const.CodesAPI.API.Controllers
                 return NotFound($"StandardUpdate with ID {id} not found.");
             return Ok(result);
         }
+
+        // GET: api/v1/referencedocumentupdates/statuses
+        [HttpGet("statuses")]
+        [Produces("application/json")]
+        public async Task<ActionResult<IEnumerable<StandardUpdateStatusDto>>> GetAllStatuses()
+        {
+            var result = await _service.GetAllStatusesAsync();
+            return Ok(result);
+        }
+
+        // GET: api/v1/referencedocumentupdates/statuses/{statusId}/substatuses
+        [HttpGet("statuses/{statusId}/substatuses")]
+        [Produces("application/json")]
+        public async Task<ActionResult<IEnumerable<StandardUpdateSubStatusDto>>> GetSubStatusesByStatusId(int statusId)
+        {
+            var result = await _service.GetSubStatusesByStatusIdAsync(statusId);
+            return Ok(result);
+        }
     }
 }
 

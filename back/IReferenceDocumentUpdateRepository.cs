@@ -17,5 +17,9 @@ namespace NRC.Const.CodesAPI.Application.Interfaces
         // Agencies
         Task<IEnumerable<Agency>> GetAllAgenciesAsync();
         Task<Agency?> GetAgencyByIdAsync(string id);
+
+        // Statuses
+        Task<IEnumerable<StandardUpdateStatus>> GetAllStatusesAsync();
+        Task<IEnumerable<StandardUpdateSubStatus>> GetSubStatusesByStatusIdAsync(int statusId);
     }
 }
