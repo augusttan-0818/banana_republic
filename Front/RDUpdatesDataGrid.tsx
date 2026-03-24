@@ -112,10 +112,15 @@ export default function RDUpdatesDataGrid({ editButtonCallback, refreshKey }: RD
                         overflowX: "auto",
                     },
                 }}
+                slotProps={{
+                    pagination: {
+                        showFirstButton: true,
+                        showLastButton: true,
+                    },
+                }}
                 columns={columns}
                 rows={rows}
                 loading={isLoading}
-
                 localeText={{
                     noRowsLabel: "No Reference Document Updates found",
                     footerRowSelected: (count: number) =>
