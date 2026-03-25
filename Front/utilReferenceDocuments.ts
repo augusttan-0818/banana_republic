@@ -15,6 +15,13 @@ export interface SubStatusOption {
     name: string;
     nameFR: string | null;
     sortOrder: number | null;
+}
+
+export interface CommitteeOption {
+    committeeId: number;
+    committeeName: string | null;
+    committeeShortName: string | null;
+    committeeType: number;
 } 
 
 
@@ -305,6 +312,32 @@ export async function fetchSubStatusesByStatusId(statusId: number): Promise<SubS
         return data;
     } catch (error) {
         console.error(`Error fetching sub-statuses from ${url}:`, error);
+        throw error;
+    }
+}
+
+export async function fetchCommitteesByType(committeeType: number): Promise<CommitteeOption[]> {
+    const isServer = typeof window === 'undefined';
+    const baseUrl = isServer ? APP_BASE_URL : '';
+    const url = `${baseUrl}/api/committee/type/${committeeType}`;
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            cache: 'no-store'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data: CommitteeOption[] = await response.json();
+        return data;
+    } catch (error) {
+        console.error(`Error fetching committees from ${url}:`, error);
         throw error;
     }
 }
