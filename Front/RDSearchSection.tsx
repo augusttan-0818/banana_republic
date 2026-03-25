@@ -21,7 +21,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import SearchOffIcon from '@mui/icons-material/SearchOff';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import RDUpdatesDataGrid from "./RDUpdatesDataGrid";
-import { fetchAllStatuses, fetchSubStatusesByStatusId, StatusOption, SubStatusOption } from "@/app/[locale]/reference-documents/utils/utilReferenceDocuments";
+import { fetchAllStatuses, fetchSubStatusesByStatusId, StatusOption, SubStatusOption } from "@/utils/utilReferenceDocuments";
 
 export type RDUpdateSearch = {
   documentNumberFrom?: string;
