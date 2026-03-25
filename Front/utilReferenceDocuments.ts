@@ -323,7 +323,7 @@ export async function fetchSubStatusesByStatusId(statusId: number): Promise<SubS
 export async function fetchCommitteesByType(committeeType: number): Promise<CommitteeOption[]> {
     const isServer = typeof window === 'undefined';
     const baseUrl = isServer ? APP_BASE_URL : '';
-    const url = `${baseUrl}/api/committee/type/${committeeType}`;
+    const url = `${baseUrl}/api/committees/type/${committeeType}`;
 
     try {
         const response = await fetch(url, {
