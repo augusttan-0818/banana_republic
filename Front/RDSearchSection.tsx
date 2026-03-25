@@ -21,7 +21,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import SearchOffIcon from '@mui/icons-material/SearchOff';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import RDUpdatesDataGrid from "./RDUpdatesDataGrid";
-import { fetchAllStatuses, fetchSubStatusesByStatusId, StatusOption, SubStatusOption } from "@/utils/utilReferenceDocuments";
+import { fetchAllStatuses, fetchSubStatusesByStatusId, fetchCommitteesByType, StatusOption, SubStatusOption, CommitteeOption } from "@/utils/utilReferenceDocuments";
 
 export type RDUpdateSearch = {
   documentNumberFrom?: string;
@@ -80,14 +80,10 @@ const defaultDecisionOptions = [
   { label: "NO DECISION", value: "NO DECISION" },
 ];
 
-const committeeOptions = [
-  { label: "ANY", value: "" },
-];
-
-const additionalCommitteeOptions = [
-  { label: "ANY", value: "" },
-  { label: "(placeholder)", value: "(placeholder)" },
-];
+// Committee types: 8 = Standing Committees (for Status section), 5 = ? (for Additional section)
+const COMMITTEE_TYPE_STATUS = 8;
+const COMMITTEE_TYPE_ADDITIONAL_5 = 5;
+const COMMITTEE_TYPE_ADDITIONAL_8 = 8;
 
 const additionalAgencyOptions = [
   { label: "ANY", value: "" },
@@ -122,6 +118,12 @@ export default function RDSearchSection({ refreshKey, onRefreshChange }: RDSearc
     { label: "ANY", value: "" },
   ]);
   const [decisionOptions, setDecisionOptions] = useState(defaultDecisionOptions);
+  const [statusCommitteeOptions, setStatusCommitteeOptions] = useState<{ label: string; value: string }[]>([
+    { label: "ANY", value: "" },
+  ]);
+  const [additionalCommitteeOptions, setAdditionalCommitteeOptions] = useState<{ label: string; value: string }[]>([
+    { label: "ANY", value: "" },
+  ]);
 
   const form = useForm<RDUpdateSearch>({
     mode: "all",
@@ -134,7 +136,7 @@ export default function RDSearchSection({ refreshKey, onRefreshChange }: RDSearc
     name: "statusValue",
   });
 
-  // Fetch statuses on mount
+  // Fetch statuses and committees on mount
   useEffect(() => {
     const loadStatuses = async () => {
       try {
@@ -152,7 +154,44 @@ export default function RDSearchSection({ refreshKey, onRefreshChange }: RDSearc
         console.error("Failed to load statuses:", error);
       }
     };
+
+    const loadCommittees = async () => {
+      try {
+        // Fetch type 8 committees for Status section
+        const type8Committees = await fetchCommitteesByType(COMMITTEE_TYPE_STATUS);
+        const statusCommOpts = [
+          { label: "ANY", value: "" },
+          ...type8Committees.map((c) => ({
+            label: c.committeeShortName || c.committeeName || "",
+            value: c.committeeShortName || c.committeeName || "",
+          })),
+        ];
+        setStatusCommitteeOptions(statusCommOpts);
+
+        // Fetch type 5 and type 8 committees for Additional section
+        const type5Committees = await fetchCommitteesByType(COMMITTEE_TYPE_ADDITIONAL_5);
+        const allAdditionalCommittees = [...type5Committees, ...type8Committees];
+
+        // Remove duplicates based on committeeId
+        const uniqueCommittees = allAdditionalCommittees.filter(
+          (c, index, self) => index === self.findIndex((t) => t.committeeId === c.committeeId)
+        );
+
+        const additionalCommOpts = [
+          { label: "ANY", value: "" },
+          ...uniqueCommittees.map((c) => ({
+            label: c.committeeShortName || c.committeeName || "",
+            value: c.committeeShortName || c.committeeName || "",
+          })),
+        ];
+        setAdditionalCommitteeOptions(additionalCommOpts);
+      } catch (error) {
+        console.error("Failed to load committees:", error);
+      }
+    };
+
     loadStatuses();
+    loadCommittees();
   }, []);
 
   // Update decision options when status changes
@@ -318,7 +357,7 @@ export default function RDSearchSection({ refreshKey, onRefreshChange }: RDSearc
                           textFieldProps={{
                             label: "Committee",
                           }}
-                          options={committeeOptions}
+                          options={statusCommitteeOptions}
                         />
                       </Grid>
                       <Grid size={{ xs: 12, md: 6 }}>
