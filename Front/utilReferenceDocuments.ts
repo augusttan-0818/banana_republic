@@ -24,6 +24,10 @@ export interface CommitteeOption {
     committeeType: number;
 } 
 
+export interface AgencyOption {
+    id: string;
+    name: string;
+}
 
 export async function fetchAllStandardsAndOrgs(cookieHeader: string, page: number, pageSize: number): Promise<[ReferenceDocumentRecord[], number]> { 
     const isServer = typeof window === 'undefined';
@@ -338,6 +342,32 @@ export async function fetchCommitteesByType(committeeType: number): Promise<Comm
         return data;
     } catch (error) {
         console.error(`Error fetching committees from ${url}:`, error);
+        throw error;
+    }
+}
+
+export async function fetchAllAgencies(): Promise<AgencyOption[]> {
+    const isServer = typeof window === 'undefined';
+    const baseUrl = isServer ? APP_BASE_URL : '';
+    const url = `${baseUrl}/api/referencedocumentupdates/agencies`;
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            cache: 'no-store'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data: AgencyOption[] = await response.json();
+        return data;
+    } catch (error) {
+        console.error(`Error fetching agencies from ${url}:`, error);
         throw error;
     }
 }
