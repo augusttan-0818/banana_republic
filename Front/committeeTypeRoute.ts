@@ -3,6 +3,7 @@ import { createAxiosInstanceWithToken } from "@/utils/axiosInstance";
 import { getValidAccessToken } from "@/utils/getValidAccessToken";
 
 // This file should be placed at: src/app/api/committees/type/[committeeType]/route.ts
+// NOTE: Frontend folder is "committees" (plural), but backend endpoint is "committee" (singular)
 
 export async function GET(
     request: NextRequest,
@@ -20,7 +21,7 @@ export async function GET(
         const { committeeType } = await params;
         const axios = createAxiosInstanceWithToken(token);
 
-        const response = await axios.get(`/committees/type/${committeeType}`);
+        const response = await axios.get(`/committee/type/${committeeType}`);
 
         return NextResponse.json(response.data);
     } catch (error: any) {
