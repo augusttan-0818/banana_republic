@@ -6,7 +6,7 @@ import { getValidAccessToken } from "@/utils/getValidAccessToken";
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { statusId: string } }
+    { params }: { params: Promise<{ statusId: string }> }
 ) {
     try {
         const token = await getValidAccessToken(request);
@@ -17,8 +17,8 @@ export async function GET(
             );
         }
 
+        const { statusId } = await params;
         const axios = createAxiosInstanceWithToken(token);
-        const statusId = params.statusId;
 
         const response = await axios.get(`/referencedocumentupdates/statuses/${statusId}/substatuses`);
 
