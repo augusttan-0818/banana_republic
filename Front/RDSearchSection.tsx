@@ -21,7 +21,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import SearchOffIcon from '@mui/icons-material/SearchOff';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import RDUpdatesDataGrid from "./RDUpdatesDataGrid";
-import { fetchAllStatuses, fetchSubStatusesByStatusId, fetchCommitteesByType, StatusOption, SubStatusOption, CommitteeOption } from "@/utils/utilReferenceDocuments";
+import { fetchAllStatuses, fetchSubStatusesByStatusId, fetchCommitteesByType, fetchAllAgencies, StatusOption, SubStatusOption, CommitteeOption, AgencyOption } from "@/utils/utilReferenceDocuments";
 
 export type RDUpdateSearch = {
   documentNumberFrom?: string;
@@ -85,10 +85,10 @@ const COMMITTEE_TYPE_STATUS = 8;
 const COMMITTEE_TYPE_ADDITIONAL_5 = 5;
 const COMMITTEE_TYPE_ADDITIONAL_8 = 8;
 
-const additionalAgencyOptions = [
-  { label: "ANY", value: "" },
-  { label: "(placeholder)", value: "(placeholder)" },
-];
+// const additionalAgencyOptions = [
+//   { label: "ANY", value: "" },
+//   { label: "(placeholder)", value: "(placeholder)" },
+// ];
 
 const additionalCodeOptions = [
   { label: "ANY", value: "" },
@@ -122,6 +122,9 @@ export default function RDSearchSection({ refreshKey, onRefreshChange }: RDSearc
     { label: "ANY", value: "" },
   ]);
   const [additionalCommitteeOptions, setAdditionalCommitteeOptions] = useState<{ label: string; value: string }[]>([
+    { label: "ANY", value: "" },
+  ]);
+  const [additionalAgencyOptions, setAdditionalAgencyOptions] = useState<{ label: string; value: string }[]>([
     { label: "ANY", value: "" },
   ]);
 
@@ -190,8 +193,25 @@ export default function RDSearchSection({ refreshKey, onRefreshChange }: RDSearc
       }
     };
 
+    const loadAgencies = async () => {
+      try {
+        const agencies = await fetchAllAgencies();
+        const options = [
+          { label: "ANY", value: "" },
+          ...agencies.map((a) => ({
+            label: `${a.id} - ${a.name}`,
+            value: a.id,
+          })),
+        ];
+        setAdditionalAgencyOptions(options);
+      } catch (error) {
+        console.error("Failed to load agencies:", error);
+      }
+    };
+
     loadStatuses();
     loadCommittees();
+    loadAgencies();
   }, []);
 
   // Update decision options when status changes
