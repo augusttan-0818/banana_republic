@@ -1,6 +1,7 @@
 using AutoMapper;
 using NRC.Const.CodesAPI.Application.DTOs.AppDTOs.ReferenceDocumentUpdate;
 using NRC.Const.CodesAPI.Application.DTOs.InterfaceDTOs;
+using NRC.Const.CodesAPI.Application.DTOs.InterfaceDTOs.Search;
 using NRC.Const.CodesAPI.Application.Interfaces;
 
 namespace NRC.Const.CodesAPI.Application.Services
@@ -40,6 +41,18 @@ namespace NRC.Const.CodesAPI.Application.Services
         public async Task<PagedResult<ReferenceDocumentUpdateListDto>> GetPagedStandardUpdatesListAsync(int page, int pageSize)
         {
             var pagedResult = await _repository.GetPagedStandardUpdatesAsync(page, pageSize);
+            return new PagedResult<ReferenceDocumentUpdateListDto>
+            {
+                Items = _mapper.Map<IEnumerable<ReferenceDocumentUpdateListDto>>(pagedResult.Items),
+                TotalCount = pagedResult.TotalCount,
+                PageNumber = pagedResult.PageNumber,
+                PageSize = pagedResult.PageSize,
+            };
+        }
+
+        public async Task<PagedResult<ReferenceDocumentUpdateListDto>> SearchStandardUpdatesAsync(RdUpdateSearchQuery query)
+        {
+            var pagedResult = await _repository.SearchStandardUpdatesAsync(query);
             return new PagedResult<ReferenceDocumentUpdateListDto>
             {
                 Items = _mapper.Map<IEnumerable<ReferenceDocumentUpdateListDto>>(pagedResult.Items),

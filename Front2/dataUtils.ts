@@ -1,5 +1,5 @@
 "use client";
-import { fetchAllStandardsAndOrgs, fetchAllApplyToStandards, fetchAllStandardOrgs, fetchStandardsByOrg, fetchStandardByStandID} from "@/utils/utilReferenceDocuments";
+import { fetchAllStandardsAndOrgs, fetchAllApplyToStandards, fetchAllStandardOrgs, fetchStandardsByOrg, fetchStandardByStandID, searchRdUpdates, RdUpdateSearchParams } from "@/utils/utilReferenceDocuments";
 import type { Organization } from "@/app/api/referencedocuments/ReferenceDocument";
 import { ReferenceDocumentRecord, RDUpdate } from "./dataTypes"
 
@@ -16,6 +16,13 @@ export async function getReferenceDocumentUpdates(cookie: string, page: number, 
     // TODO: Combine multiple API calls into a grid component for rd-upload to show relevant data
     return [updates, count];
 }
+
+// Search Reference Document Updates with filters
+export async function searchReferenceDocumentUpdates(cookie: string, params: RdUpdateSearchParams): Promise<[RDUpdate[], number]> {
+    return await searchRdUpdates(cookie, params);
+}
+
+export type { RdUpdateSearchParams };
 
 export async function getAllStandardOrgs(cookie: string, page: number, pageSize: number): Promise<[Organization[], number]> {
     return await fetchAllStandardOrgs(cookie, page, pageSize);

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NRC.Const.CodesAPI.Application.DTOs.InterfaceDTOs;
+using NRC.Const.CodesAPI.Application.DTOs.InterfaceDTOs.Search;
 using NRC.Const.CodesAPI.Application.Interfaces;
 using NRC.Const.CodesAPI.Domain.Entities.ReferenceDocumentUpdate;
 using NRC.Const.CodesAPI.Infrastructure.Persistence.DbContexts;
@@ -37,6 +38,60 @@ namespace NRC.Const.CodesAPI.Infrastructure.Services.Repositories
                 .Include(s => s.Standard)
                     .ThenInclude(s => s!.Agency)
                 .Skip(pageSize * (pageNumber - 1))
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<StandardUpdate>
+            {
+                Items = standardUpdates,
+                TotalCount = totalItemCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+            };
+        }
+
+        public async Task<PagedResult<StandardUpdate>> SearchStandardUpdatesAsync(RdUpdateSearchQuery query)
+        {
+            var pageNumber = query.PageNumber < 1 ? 1 : query.PageNumber;
+            var pageSize = query.PageSize < 1 ? 10 : query.PageSize;
+
+            IQueryable<StandardUpdate> q = _context.StandardUpdates
+                .OrderByDescending(s => s.Id)
+                .AsNoTracking();
+
+            // Update ID Range
+            if (query.DocumentNumberFrom.HasValue)
+                q = q.Where(x => x.Id >= query.DocumentNumberFrom.Value);
+
+            if (query.DocumentNumberTo.HasValue)
+                q = q.Where(x => x.Id <= query.DocumentNumberTo.Value);
+
+            // Date Submitted Range
+            if (query.SubmittedDateFrom.HasValue)
+                q = q.Where(x => x.RequestDate >= query.SubmittedDateFrom.Value);
+
+            if (query.SubmittedDateTo.HasValue)
+                q = q.Where(x => x.RequestDate <= query.SubmittedDateTo.Value);
+
+            // Agency Filter (Additional Section)
+            if (!string.IsNullOrEmpty(query.AdditionalAgency))
+                q = q.Where(x => x.Standard != null && x.Standard.AgencyId == query.AdditionalAgency);
+
+            // Public Review Filter
+            if (!string.IsNullOrEmpty(query.PublicReview))
+            {
+                if (query.PublicReview == "Post")
+                    q = q.Where(x => x.PrDocNumber != null && x.PrDocNumber != "");
+            }
+
+            // Get total count before pagination
+            var totalItemCount = await q.CountAsync();
+
+            // Apply pagination and eager loading
+            var standardUpdates = await q
+                .Include(s => s.Standard)
+                    .ThenInclude(s => s!.Agency)
+                .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 

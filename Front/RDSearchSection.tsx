@@ -20,7 +20,7 @@ import { DatePicker } from "@/features/form/components/controllers/date-picker";
 import SearchIcon from "@mui/icons-material/Search";
 import SearchOffIcon from '@mui/icons-material/SearchOff';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import RDUpdatesDataGrid from "./RDUpdatesDataGrid";
+import RDUpdatesDataGrid, { RDUpdateSearchCriteria } from "./RDUpdatesDataGrid";
 import { fetchAllStatuses, fetchSubStatusesByStatusId, fetchCommitteesByType, fetchAllAgencies, StatusOption, SubStatusOption, CommitteeOption, AgencyOption } from "@/utils/utilReferenceDocuments";
 
 export type RDUpdateSearch = {
@@ -114,6 +114,7 @@ interface RDSearcSectionProps {
 export default function RDSearchSection({ refreshKey, onRefreshChange }: RDSearcSectionProps) {
   const [expanded, setExpanded] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchCriteria, setSearchCriteria] = useState<RDUpdateSearchCriteria | undefined>(undefined);
   const [statusOptions, setStatusOptions] = useState<{ label: string; value: string; id?: number }[]>([
     { label: "ANY", value: "" },
   ]);
@@ -252,6 +253,27 @@ export default function RDSearchSection({ refreshKey, onRefreshChange }: RDSearc
 
   const handleSubmit: SubmitHandler<RDUpdateSearch> = async (formData) => {
     console.log("Form Data Submitted: ", formData);
+
+    // Build search criteria from form data
+    const criteria: RDUpdateSearchCriteria = {
+      documentNumberFrom: formData.documentNumberFrom || undefined,
+      documentNumberTo: formData.documentNumberTo || undefined,
+      submittedDateFrom: formData.submittedDateFrom || undefined,
+      submittedDateTo: formData.submittedDateTo || undefined,
+      having: formData.having || undefined,
+      statusValue: formData.statusValue || undefined,
+      decision: formData.decision || undefined,
+      statusCommittee: formData.statusCommittee || undefined,
+      minutesReference: formData.minutesReference || undefined,
+      additionalCommittee: formData.additionalCommittee || undefined,
+      additionalAgency: formData.additionalAgency || undefined,
+      additionalCode: formData.additionalCode || undefined,
+      additionalCodeReference: formData.additionalCodeReference || undefined,
+      publicReview: formData.publicReview || undefined,
+      includeExclude: formData.includeExclude || undefined,
+    };
+
+    setSearchCriteria(criteria);
     setHasSearched(true);
     setExpanded(false);
     onRefreshChange(refreshKey + 1);
@@ -259,6 +281,7 @@ export default function RDSearchSection({ refreshKey, onRefreshChange }: RDSearc
 
   const handleReset = () => {
     form.reset();
+    setSearchCriteria(undefined);
     setHasSearched(false);
     setExpanded(true);
   };
@@ -513,9 +536,10 @@ export default function RDSearchSection({ refreshKey, onRefreshChange }: RDSearc
 
       {hasSearched && (
         <Grid size={{ xs: 12, md: 12 }}>
-          <RDUpdatesDataGrid 
+          <RDUpdatesDataGrid
             editButtonCallback={(row) => { console.log("Edit row:", row); }}
             refreshKey={refreshKey}
+            searchCriteria={searchCriteria}
           />
         </Grid>
       )}

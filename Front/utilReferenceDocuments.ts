@@ -371,3 +371,104 @@ export async function fetchAllAgencies(): Promise<AgencyOption[]> {
         throw error;
     }
 }
+
+export interface RdUpdateSearchParams {
+    pageNumber: number;
+    pageSize: number;
+    documentNumberFrom?: string;
+    documentNumberTo?: string;
+    submittedDateFrom?: string;
+    submittedDateTo?: string;
+    having?: string;
+    statusValue?: string;
+    decision?: string;
+    statusCommittee?: string;
+    minutesReference?: string;
+    additionalCommittee?: string;
+    additionalAgency?: string;
+    additionalCode?: string;
+    additionalCodeReference?: string;
+    publicReview?: string;
+    includeExclude?: string;
+}
+
+export async function searchRdUpdates(cookieHeader: string, params: RdUpdateSearchParams): Promise<[RDUpdate[], number]> {
+    const isServer = typeof window === 'undefined';
+    const baseUrl = isServer ? APP_BASE_URL : '';
+
+    // Build query string from params
+    const queryParams = new URLSearchParams();
+    queryParams.append('pageNumber', params.pageNumber.toString());
+    queryParams.append('pageSize', params.pageSize.toString());
+
+    if (params.documentNumberFrom) queryParams.append('documentNumberFrom', params.documentNumberFrom);
+    if (params.documentNumberTo) queryParams.append('documentNumberTo', params.documentNumberTo);
+    if (params.submittedDateFrom) queryParams.append('submittedDateFrom', params.submittedDateFrom);
+    if (params.submittedDateTo) queryParams.append('submittedDateTo', params.submittedDateTo);
+    if (params.having) queryParams.append('having', params.having);
+    if (params.statusValue) queryParams.append('statusValue', params.statusValue);
+    if (params.decision) queryParams.append('decision', params.decision);
+    if (params.statusCommittee) queryParams.append('statusCommittee', params.statusCommittee);
+    if (params.minutesReference) queryParams.append('minutesReference', params.minutesReference);
+    if (params.additionalCommittee) queryParams.append('additionalCommittee', params.additionalCommittee);
+    if (params.additionalAgency) queryParams.append('additionalAgency', params.additionalAgency);
+    if (params.additionalCode) queryParams.append('additionalCode', params.additionalCode);
+    if (params.additionalCodeReference) queryParams.append('additionalCodeReference', params.additionalCodeReference);
+    if (params.publicReview) queryParams.append('publicReview', params.publicReview);
+    if (params.includeExclude) queryParams.append('includeExclude', params.includeExclude);
+
+    const url = `${baseUrl}/api/referencedocumentupdates/standardupdates/search?${queryParams.toString()}`;
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                Cookie: cookieHeader,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            cache: 'no-store'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Invalid response content-type. Expected JSON.');
+        }
+
+        // Parse the PagedResult response
+        let pagedResult: { items: any[]; totalCount: number };
+        try {
+            const rawData = await response.json();
+            if (!rawData.items || typeof rawData.totalCount !== 'number') {
+                throw new Error('Expected PagedResult with items and totalCount');
+            }
+            pagedResult = rawData;
+        } catch (parseError) {
+            throw new Error('Failed to parse response as JSON');
+        }
+
+        // Transform the data to match the DataGrid columns
+        const transformedData = pagedResult.items.map((item: any) => ({
+            id: item.id ?? 0,
+            issuingAgency: item.agencyName ?? '',
+            documentNumber: item.docNumber ?? '',
+            referencedIn: item.referencedIn ?? '',
+            withdrawnDate: item.withdrawnDate ?? null,
+            publicationDate: item.publicationDate ?? null,
+            submittedDate: item.requestDate ?? null,
+            submittedBy: item.updatedBy ?? '',
+            SCs: [],
+            status: [],
+            PR: null,
+            job: null,
+        }));
+
+        return [transformedData as unknown as RDUpdate[], pagedResult.totalCount];
+    } catch (error) {
+        console.error(`Error searching data from ${url}:`, error);
+        throw error;
+    }
+}

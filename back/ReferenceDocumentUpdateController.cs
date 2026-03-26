@@ -2,6 +2,7 @@ using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using NRC.Const.CodesAPI.Application.DTOs.AppDTOs.ReferenceDocumentUpdate;
 using NRC.Const.CodesAPI.Application.DTOs.InterfaceDTOs;
+using NRC.Const.CodesAPI.Application.DTOs.InterfaceDTOs.Search;
 using NRC.Const.CodesAPI.Application.Interfaces;
 
 namespace NRC.Const.CodesAPI.API.Controllers
@@ -75,6 +76,16 @@ namespace NRC.Const.CodesAPI.API.Controllers
             [FromQuery] int pageSize = 10)
         {
             var result = await _service.GetPagedStandardUpdatesListAsync(page, pageSize);
+            return Ok(result);
+        }
+
+        // GET: api/v1/referencedocumentupdates/standardupdates/search
+        [HttpGet("standardupdates/search")]
+        [Produces("application/json")]
+        public async Task<ActionResult<PagedResult<ReferenceDocumentUpdateListDto>>> SearchStandardUpdates(
+            [FromQuery] RdUpdateSearchQuery query)
+        {
+            var result = await _service.SearchStandardUpdatesAsync(query);
             return Ok(result);
         }
 

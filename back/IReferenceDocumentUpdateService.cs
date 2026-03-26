@@ -1,5 +1,6 @@
 using NRC.Const.CodesAPI.Application.DTOs.AppDTOs.ReferenceDocumentUpdate;
 using NRC.Const.CodesAPI.Application.DTOs.InterfaceDTOs;
+using NRC.Const.CodesAPI.Application.DTOs.InterfaceDTOs.Search;
 
 namespace NRC.Const.CodesAPI.Application.Interfaces
 {
@@ -10,6 +11,7 @@ namespace NRC.Const.CodesAPI.Application.Interfaces
         Task<StandardUpdateDto?> GetStandardUpdateByIdAsync(int id);
         Task<IEnumerable<ReferenceDocumentUpdateListDto>> GetAllStandardUpdatesListAsync();
         Task<PagedResult<ReferenceDocumentUpdateListDto>> GetPagedStandardUpdatesListAsync(int page, int pageSize);
+        Task<PagedResult<ReferenceDocumentUpdateListDto>> SearchStandardUpdatesAsync(RdUpdateSearchQuery query);
 
         // Standards
         Task<IEnumerable<StandardDto>> GetAllStandardsAsync();
